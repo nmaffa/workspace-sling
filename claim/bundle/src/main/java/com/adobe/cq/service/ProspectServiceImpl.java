@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
   
+import javax.jcr.NodeIterator;
 import javax.jcr.Repository; 
 import javax.jcr.SimpleCredentials; 
 import javax.jcr.Node; 
@@ -34,6 +35,7 @@ import javax.jcr.Session;
 import javax.jcr.Node; 
  
  
+import org.apache.sling.api.resource.LoginException;
 //Sling Imports
 import org.apache.sling.api.resource.ResourceResolverFactory; 
 import org.apache.sling.api.resource.ResourceResolver; 
@@ -83,26 +85,14 @@ public class ProspectServiceImpl implements ProspectService {
 		     
 			//Setup the query to get all prospect records (NEED TO VALIDATE THIS)
 			sqlStatement = "SELECT * FROM [nt:unstructured] WHERE ISDESCENDANTNODE([/var/prospects])";
-			//sqlStatement = "SELECT * FROM [nt:unstructured] WHERE email='zyz@sapient.com'";
-			//sqlStatement = "SELECT * FROM [nt:unstructured] WHERE PATH([nt:unstructured]) LIKE '/var/prospects/%' ";
 			sqlStatement += " AND [nt:unstructured].isBlacklist IS NOT NULL AND [nt:unstructured].isBlacklist='true' ";
 			sqlStatement += " AND [nt:unstructured].regStatusEmailType IS NOT NULL AND [nt:unstructured].regStatusEmailType='EXPIRED' ";
 			sqlStatement += " AND [nt:unstructured].isApproved IS NOT NULL AND [nt:unstructured].isApproved='-1'";
-			
-			
-			//Simple query used for debugging - no relevance to web page
-			//sqlStatement = "SELECT * FROM [nt:resource] WHERE [jcr:encoding]='utf-8'";
-
-			//Query used in tutorial
-			//sqlStatement = "SELECT * FROM [nt:unstructured] WHERE CONTAINS(desc, 'Customer')";
 			         
 			javax.jcr.query.Query query = queryManager.createQuery(sqlStatement,"JCR-SQL2");
 			 
 			//Execute the query and get the results ...
 			javax.jcr.query.QueryResult result = query.execute();
-			
-			//Used in conjunction with above simple query
-			//return Long.toString(result.getNodes().getSize());
 			 
 			//Iterate over the nodes in the results ...
 			javax.jcr.NodeIterator nodeIter = result.getNodes();
@@ -119,11 +109,7 @@ public class ProspectServiceImpl implements ProspectService {
 				 prospect.setFname(node.getProperty("fname").getString());
 				 prospect.setLname(node.getProperty("lname").getString());
 				 prospect.setIsApproved(node.getProperty("isApproved").getString());
-			//	 prospect.setCustFirst(node.getProperty("firstName").getString());
-			//	 prospect.setCustLast(node.getProperty("lastName").getString());
-			//	 prospect.setCustAddress(node.getProperty("address").getString());
-			//	 prospect.setCustDescription(node.getProperty("desc").getString());
-				           
+				 
 				  //Push prospect to the list
 				  prospectList.add(prospect);
 			}
@@ -215,107 +201,82 @@ public class ProspectServiceImpl implements ProspectService {
 	 }
 	
 	 
-	 
+	 private Node nodeSearch(Node node, String property, String value){
+		 
+		 try{
+			 
+			 if (node.hasProperty(property) && node.getProperty(property).getString().equals(value)){
+				 
+				 //Conditions below ensure this node is one that has met prospect query criteria before returning it
+				 //NOTE - Needs to be removed once way of uniquely identifying prospect found
+				 boolean isNotApproved = (node.hasProperty("isApproved") && node.getProperty("isApproved").getString().equals("-1"));
+				 boolean isNodeBlacklist = (node.hasProperty("isBlacklist") && node.getProperty("isBlacklist").getString().equals("true"));
+				 boolean isRegStatusExpired = (node.hasProperty("regStatusEmailType") && node.getProperty("regStatusEmailType").getString().equals("EXPIRED"));
+				 if (isNotApproved && isNodeBlacklist && isRegStatusExpired) {
+					return node; 
+				 }
+			 }
+		 
+			 NodeIterator nodeIterator = node.getNodes();
+			 
+			 while (nodeIterator.hasNext()){
+				 Node n = nodeSearch(nodeIterator.nextNode(), property, value);
+				 if (n != null){
+					 return n;
+				 }
+			 }
+			 
+		 } catch (RepositoryException re) {
+			 log.error("Node search error", re);
+		 }
+		 
+		 return null;
+	 }
 	 
 	//Stores prospect data in the Adobe CQ JCR
 	public int approveProspect(String email)
 	{      
-		/*
-	  
-		int num  = 0;
 		try {
 	              
 		    //Invoke the adaptTo method to create a Session used to create a QueryManager
-		    ResourceResolver resourceResolver = resolverFactory.getResourceResolver(null);
+			ResourceResolver resourceResolver = resolverFactory.getAdministrativeResourceResolver(null);
 		    session = resourceResolver.adaptTo(Session.class);
 	               
 		    //Create a node that represents the root node
 		    Node root = session.getRootNode();
 			                     
-			//Get the content node in the JCR
-			Node content = root.getNode("var/prospects");
-			                      
-			//Determine if the content/customer node exists
-			Node prospectRoot = null;
-			int custRec = doesCustExist(content);
-			                                            
-			//-1 means that content/customer does not exist
-			if (custRec == -1){
-			     //content/customer does not exist -- create it
-				 prospectRoot = content.addNode("customer","nt:unstructured");
+			//Get the prospects node in the JCR
+			Node prospectsNode = root.getNode("var").getNode("prospects");
+			
+			//Find target node
+			Node targetNode = null;
+			if (prospectsNode != null){
+				targetNode = nodeSearch(prospectsNode, "email", email);
 			}
-			else {
-				 //content/customer does exist -- retrieve it
-				 prospectRoot = content.getNode("customer");
+			
+			//Return in case target not found
+			if (targetNode == null){
+				log.info("No nodes found with email  '" + email + "'");
+				//int failtest = 2 / 0;
+				return -2;
 			}
-
-	                                 
-			int custId = custRec+1; //assign a new id to the customer node
 	                      
 			//Store content from the client JSP in the JCR
-			Node custNode = prospectRoot.addNode("customer"+firstName+lastName+custId,"nt:unstructured");
-	               
-			//make sure name of node is unique
-			custNode.setProperty("id", custId);
-			custNode.setProperty("firstName", firstName);
-			custNode.setProperty("lastName", lastName);
-			custNode.setProperty("address", address); 
-			custNode.setProperty("desc", desc);
+			targetNode.setProperty("isApproved", "1");
 	                                    
 			// Save the session changes and log out
 			session.save();
 	  		session.logout();
-	  		return custId;
+	  		return 1;
 		}
 	       
-		catch(Exception  e){
+		catch(RepositoryException  e){
 			log.error("RepositoryException: " + e);
-		}*/
-		return 0 ;
+		} catch (LoginException e) {
+			// TODO Auto-generated catch block
+			log.error("LoginException: " + e);
+		}
+		return -1;
 	}
-	      
-	  
-	/*
-	 * Determines if the content/prospect node exists
-	 * This method returns these values:
-	 * -1 - if prospect does not exist
-	 * 0 - if content/prospect node exists; however, contains no children
-	 * number - the number of children that the content/customer node contains
-	*/
-	private int doesProspectExist(Node content)
-	{
-		try
-		{
-			int index = 0 ;
-			int childRecs = 0 ;
-	      
-			java.lang.Iterable<Node> prospectNode = JcrUtils.getChildNodes(content, "customer");
-			Iterator it = prospectNode.iterator();
-	               
-	 //only going to be 1 content/customer node if it exists
-	if (it.hasNext())
-	 {
-	 //Count the number of child nodes to customer
-	 Node customerRoot = content.getNode("customer");
-	 Iterable itCust = JcrUtils.getChildNodes(customerRoot);
-	 Iterator childNodeIt = itCust.iterator();
-	              
-	//Count the number of customer child nodes
-	while (childNodeIt.hasNext())
-	{
-	 childRecs++;
-	 childNodeIt.next();
-	}
-	 return childRecs;
-	  }
-	else
-	return -1; //content/customer does not exist
-	}
-	catch(Exception e)
-	{
-	    e.printStackTrace();
-	}
-	return 0;
-	 }
  
  }

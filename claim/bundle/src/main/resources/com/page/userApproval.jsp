@@ -31,10 +31,7 @@
 $(document).ready(function() {
 
 
-       var aDataSet = [
-                       ['','','',''],
-                       ['','','','']
-                   ];
+       var aDataSet = [];
 
     $('#dynamic').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="resultTable"></table>' );
 
@@ -51,7 +48,8 @@ $(document).ready(function() {
     $('body').hide().fadeIn(2000);
 
 
-    //Will need to use similar function for posting data
+
+//Will need to use similar function for posting data
 /*$('#submit').click(function() {
     var failure = function(err) {
       //  $(".main").unmask();
@@ -91,9 +89,152 @@ $(document).ready(function() {
     });
 });*/
 
+    //Get Prospect data
+    //This method populates the data grid with data retrieved from the Adobe CQ JCR
+	function getProspectData() {
+        var failure = function(err) {
+              alert("Unable to retrive data "+err);
+          };
 
-//Get customer data -- called when the submitget button is clicked
-//this method populates the data grid with data retrieved from the //Adobe CQ JCR
+        //Get the query filter value from drop down control
+        //var filter=   $('#prospectQuery').val() ; 
+
+        //alert("Button was pressed");
+        var url = location.pathname.replace(".html", "/_jcr_content.query.json") /*+ "?filter="+ filter*/;
+
+        $.ajax(url, {
+            dataType: "text",
+            success: function(rawData, status, xhr) {
+                var data;
+                try {
+                    data = $.parseJSON(rawData);
+
+
+                    //Set the fields in the forum
+                    var myXML = data.xml;
+
+                    var loopIndex = 0; 
+
+                    //Reference the data grid, clear it, and add new records
+                    //queried from the Adobe CQ JCR
+                    var oTable = $('#resultTable').dataTable();
+                     oTable.fnClearTable(true);
+
+
+                     //Loop through this function for each Prospect element
+                     //in the returned XML
+                     $(myXML).find('prospect').each(function(){
+
+                        var $field = $(this);
+                        var email = $field.find('email').text();
+                        var fName = $field.find('fname').text();
+                        var lName = $field.find('lname').text();
+                         //var isApproved = $field.find('isApproved').text(); 
+
+                        var isApproved = "<input id=chk-" + email + "-" + loopIndex + " type=checkbox>";
+
+                        //Set the new data 
+                        oTable.fnAddData( [
+                            email,
+                            fName,
+                            lName,
+                            isApproved,]
+                        );
+
+						loopIndex++;
+
+                        });
+
+                } catch(err) {
+                    failure(err);
+                }
+            },
+            error: function(xhr, status, err) {
+                failure(err);
+            } 
+        });
+
+	}
+
+	getProspectData();
+
+                            $('#submitget').click(function() {
+                            //function approveProspects() {
+		var failure = function(err) {
+              alert("Unable to retrive data "+err);
+          };
+
+        //Get the query filter value from drop down control
+        //var filter=   $('#prospectQuery').val() ; 
+
+        //alert("Button was pressed");
+        var url = location.pathname.replace(".html", "/_jcr_content.query.json") /*+ "?filter="+ filter*/;
+
+        $.ajax(url, {
+            dataType: "text",
+            success: function(rawData, status, xhr) {
+                var data;
+                try {
+                    data = $.parseJSON(rawData);
+
+
+                    //Set the fields in the forum
+                    var myXML = data.xml;
+
+                    var loopIndex = 0; 
+
+                    //Reference the data grid, clear it, and add new records
+                    //queried from the Adobe CQ JCR
+                            //var oTable = $('#resultTable').dataTable();
+                            //oTable.fnClearTable(true);
+
+
+                     //Loop through this function for each Prospect element
+                     //in the returned XML
+                     $(myXML).find('prospect').each(function(){
+
+                        var $field = $(this);
+                        var email = $field.find('email').text();
+                            //var fName = $field.find('fname').text();
+                            //var lName = $field.find('lname').text();
+                         //var isApproved = $field.find('isApproved').text(); 
+
+                        var checkboxName = "chk-" + email + "-" + loopIndex;
+
+                            if (document.getElementById(checkboxName).checked) {
+								alert("Worked!");
+                            }
+
+                            /*var isApproved = "<input id=chk-" + email + "-" + loopIndex + " type=checkbox>";
+
+                        //Set the new data 
+                        oTable.fnAddData( [
+                            email,
+                            fName,
+                            lName,
+                            isApproved,]
+                            );*/
+
+						loopIndex++;
+
+                        });
+
+                } catch(err) {
+                    failure(err);
+                }
+            },
+            error: function(xhr, status, err) {
+                failure(err);
+            } 
+        });
+
+
+    });
+
+
+/*
+//Get prospect data
+//this method populates the data grid with data retrieved from the Adobe CQ JCR
 $('#submitget').click(function() {
     var failure = function(err) {
           alert("Unable to retrive data "+err);
@@ -103,7 +244,7 @@ $('#submitget').click(function() {
     //var filter=   $('#prospectQuery').val() ; 
 
     //alert("Button was pressed");
-    var url = location.pathname.replace(".html", "/_jcr_content.query.json") /*+ "?filter="+ filter*/;
+    var url = location.pathname.replace(".html", "/_jcr_content.query.json") /*+ "?filter="+ filter*//*;
 
     $.ajax(url, {
         dataType: "text",
@@ -154,7 +295,7 @@ $('#submitget').click(function() {
             failure(err);
         } 
     });
-  });
+    });*/
 
 }); // end ready
 </script>
