@@ -105,6 +105,7 @@ public class ProspectServiceImpl implements ProspectService {
 				javax.jcr.Node node = nodeIter.nextNode();
 			           
 				 //Set all Customer object fields
+				 prospect.setUuid(node.getProperty("uuid").getString());
 				 prospect.setEmail(node.getProperty("email").getString());
 				 prospect.setFname(node.getProperty("fname").getString());
 				 prospect.setLname(node.getProperty("lname").getString());
@@ -154,6 +155,12 @@ public class ProspectServiceImpl implements ProspectService {
 	         root.appendChild( prospectElement );
 	                        
 	         //Add rest of data as child elements to customer
+	         
+	         //Set UUID
+	         Element uuidElement = doc.createElement( "uuid" );
+	         uuidElement.appendChild( doc.createTextNode( prospect.getUuid() ) );
+	         prospectElement.appendChild( uuidElement );
+	         
 	         //Set Email
 	         Element emailElement = doc.createElement( "email" );
 	         emailElement.appendChild( doc.createTextNode( prospect.getEmail() ) );
@@ -200,21 +207,14 @@ public class ProspectServiceImpl implements ProspectService {
 	  return "Failure in converting XML to String";
 	 }
 	
-	 
+	 //Does a Depth First Search on a given root node for a node with provided property/value pair
 	 private Node nodeSearch(Node node, String property, String value){
 		 
 		 try{
 			 
 			 if (node.hasProperty(property) && node.getProperty(property).getString().equals(value)){
 				 
-				 //Conditions below ensure this node is one that has met prospect query criteria before returning it
-				 //NOTE - Needs to be removed once way of uniquely identifying prospect found
-				 boolean isNotApproved = (node.hasProperty("isApproved") && node.getProperty("isApproved").getString().equals("-1"));
-				 boolean isNodeBlacklist = (node.hasProperty("isBlacklist") && node.getProperty("isBlacklist").getString().equals("true"));
-				 boolean isRegStatusExpired = (node.hasProperty("regStatusEmailType") && node.getProperty("regStatusEmailType").getString().equals("EXPIRED"));
-				 if (isNotApproved && isNodeBlacklist && isRegStatusExpired) {
-					return node; 
-				 }
+				 return node;
 			 }
 		 
 			 NodeIterator nodeIterator = node.getNodes();
@@ -232,51 +232,58 @@ public class ProspectServiceImpl implements ProspectService {
 		 
 		 return null;
 	 }
-	 
-	//Stores prospect data in the Adobe CQ JCR
-	public int approveProspect(String email)
-	{      
-		try {
-	              
-		    //Invoke the adaptTo method to create a Session used to create a QueryManager
+	
+	public int approveProspects(List<String> uuids){
+		
+		int finalCode = 1;
+
+		try{
+		
+			//Invoke the adaptTo method to create a Session used to create a QueryManager
 			ResourceResolver resourceResolver = resolverFactory.getAdministrativeResourceResolver(null);
 		    session = resourceResolver.adaptTo(Session.class);
-	               
-		    //Create a node that represents the root node
-		    Node root = session.getRootNode();
-			                     
-			//Get the prospects node in the JCR
-			Node prospectsNode = root.getNode("var").getNode("prospects");
-			
-			//Find target node
-			Node targetNode = null;
-			if (prospectsNode != null){
-				targetNode = nodeSearch(prospectsNode, "email", email);
+		
+			for (String uuid : uuids){
+				
+				    //Create a node that represents the root node
+				    Node root = session.getRootNode();
+					                     
+					//Get the prospects node in the JCR
+					Node prospectsNode = root.getNode("var").getNode("prospects");
+					
+					//Find target node
+					Node targetNode = null;
+					if (prospectsNode != null){
+						targetNode = nodeSearch(prospectsNode, "uuid", uuid);
+					}
+					
+					//Return in case target not found
+					if (targetNode == null){
+						log.info("No nodes found with UUID  '" + uuid + "'");
+						//int failtest = 2 / 0;
+						finalCode=-1;
+					}
+			                      
+					//Store content from the client JSP in the JCR
+					targetNode.setProperty("isApproved", "1");
 			}
-			
-			//Return in case target not found
-			if (targetNode == null){
-				log.info("No nodes found with email  '" + email + "'");
-				//int failtest = 2 / 0;
-				return -2;
-			}
-	                      
-			//Store content from the client JSP in the JCR
-			targetNode.setProperty("isApproved", "1");
-	                                    
+		
 			// Save the session changes and log out
 			session.save();
 	  		session.logout();
-	  		return 1;
+	  		
 		}
-	       
+		
 		catch(RepositoryException  e){
 			log.error("RepositoryException: " + e);
+			finalCode = -2;
 		} catch (LoginException e) {
 			// TODO Auto-generated catch block
 			log.error("LoginException: " + e);
+			finalCode = -3;
 		}
-		return -1;
+		
+		return finalCode;
 	}
  
  }
