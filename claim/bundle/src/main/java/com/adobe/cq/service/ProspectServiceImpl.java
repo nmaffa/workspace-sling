@@ -220,7 +220,10 @@ public class ProspectServiceImpl implements ProspectService {
 			 NodeIterator nodeIterator = node.getNodes();
 			 
 			 while (nodeIterator.hasNext()){
-				 nodeSearch(nodeIterator.nextNode(), property, value);
+				 Node n = nodeSearch(nodeIterator.nextNode(), property, value);
+				 if (n != null){
+					 return n;
+				 }
 			 }
 			 
 		 } catch (RepositoryException re) {
@@ -254,6 +257,7 @@ public class ProspectServiceImpl implements ProspectService {
 			//Return in case target not found
 			if (targetNode == null){
 				log.info("No nodes found with email  '" + email + "'");
+				//int failtest = 2 / 0;
 				return -2;
 			}
 	                      
