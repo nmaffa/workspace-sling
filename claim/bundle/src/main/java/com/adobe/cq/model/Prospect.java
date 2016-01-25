@@ -2,6 +2,7 @@ package com.adobe.cq.model;
 
 public class Prospect {
 	
+	private String uuid;
 	private String email;
 	private String fname;
 	private String lname;
@@ -15,6 +16,12 @@ public class Prospect {
 	private String tlinkValidity;
 	private String isApproved;
 	
+	public String getUuid() {
+		return uuid;
+	}
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
 	public String getEmail() {
 		return email;
 	}
@@ -92,7 +99,7 @@ public class Prospect {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((email == null) ? 0 : email.hashCode());
+		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
 		return result;
 	}
 	
@@ -105,10 +112,10 @@ public class Prospect {
 		if (getClass() != obj.getClass())
 			return false;
 		Prospect other = (Prospect) obj;
-		if (email == null) {
-			if (other.email != null)
+		if (uuid == null) {
+			if (other.uuid != null)
 				return false;
-		} else if (!email.equals(other.email))
+		} else if (!uuid.equals(other.uuid))
 			return false;
 		return true;
 	}
