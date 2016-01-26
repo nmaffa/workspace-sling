@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.rmi.ServerException;
@@ -46,6 +47,7 @@ public class HandleApproval extends org.apache.sling.api.servlets.SlingAllMethod
               //CQ web page  
     	  String email = request.getParameter("email");
     	  String isApproved = request.getParameter("isApproved");
+    	  BufferedReader reader = request.getReader();
 //          String id = UUID.randomUUID().toString();
 //          String firstName = request.getParameter("firstName");
 //          String lastName = request.getParameter("lastName");
