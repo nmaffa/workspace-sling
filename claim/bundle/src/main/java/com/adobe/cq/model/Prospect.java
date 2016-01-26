@@ -2,6 +2,7 @@ package com.adobe.cq.model;
 
 public class Prospect {
 	
+	private String jcrPath;
 	private String uuid;
 	private String email;
 	private String fname;
@@ -16,6 +17,12 @@ public class Prospect {
 	private String tlinkValidity;
 	private String isApproved;
 	
+	public String getJcrPath() {
+		return jcrPath;
+	}
+	public void setJcrPath(String jcrPath) {
+		this.jcrPath = jcrPath;
+	}
 	public String getUuid() {
 		return uuid;
 	}
@@ -99,7 +106,7 @@ public class Prospect {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((jcrPath == null) ? 0 : jcrPath.hashCode());
 		return result;
 	}
 	
@@ -112,10 +119,10 @@ public class Prospect {
 		if (getClass() != obj.getClass())
 			return false;
 		Prospect other = (Prospect) obj;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (jcrPath == null) {
+			if (other.jcrPath != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!jcrPath.equals(other.jcrPath))
 			return false;
 		return true;
 	}

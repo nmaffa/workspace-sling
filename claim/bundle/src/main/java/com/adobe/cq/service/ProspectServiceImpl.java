@@ -72,8 +72,6 @@ public class ProspectServiceImpl implements ProspectService {
 		try {
 		           
 		    //Invoke the adaptTo method to create a Session used to create a QueryManager
-			
-			//ResourceResolver resourceResolver = resolverFactory.getResourceResolver(null);
 			ResourceResolver resourceResolver = resolverFactory.getAdministrativeResourceResolver(null);
 		    session = resourceResolver.adaptTo(Session.class);
 		 
@@ -105,7 +103,8 @@ public class ProspectServiceImpl implements ProspectService {
 				javax.jcr.Node node = nodeIter.nextNode();
 			           
 				 //Set all Customer object fields
-				 prospect.setUuid(node.getProperty("uuid").getString());
+				 //prospect.setUuid(node.getProperty("uuid").getString());
+			     prospect.setJcrPath(node.getPath());
 				 prospect.setEmail(node.getProperty("email").getString());
 				 prospect.setFname(node.getProperty("fname").getString());
 				 prospect.setLname(node.getProperty("lname").getString());
@@ -157,9 +156,14 @@ public class ProspectServiceImpl implements ProspectService {
 	         //Add rest of data as child elements to customer
 	         
 	         //Set UUID
-	         Element uuidElement = doc.createElement( "uuid" );
-	         uuidElement.appendChild( doc.createTextNode( prospect.getUuid() ) );
-	         prospectElement.appendChild( uuidElement );
+//	         Element uuidElement = doc.createElement( "uuid" );
+//	         uuidElement.appendChild( doc.createTextNode( prospect.getUuid() ) );
+//	         prospectElement.appendChild( uuidElement );
+	        
+	         //Set JCR Path
+	         Element jcrPathElement = doc.createElement("jcrpath");
+	         jcrPathElement.appendChild( doc.createTextNode( prospect.getJcrPath() ) );
+	         prospectElement.appendChild( jcrPathElement );
 	         
 	         //Set Email
 	         Element emailElement = doc.createElement( "email" );
@@ -232,10 +236,38 @@ public class ProspectServiceImpl implements ProspectService {
 		 
 		 return null;
 	 }
+	 
+	//Does a Depth First Search on a given root node for a node with provided path value
+	private Node nodePathSearch(Node node, String pathValue){
+		
+		try{
+			 
+			 if (node.getPath().equals(pathValue)){
+				 
+				 return node;
+			 }
+		 
+			 NodeIterator nodeIterator = node.getNodes();
+			 
+			 while (nodeIterator.hasNext()){
+				 Node n = nodePathSearch(nodeIterator.nextNode(), pathValue);
+				 if (n != null){
+					 return n;
+				 }
+			 }
+			 
+		 } catch (RepositoryException re) {
+			 log.error("Node search error", re);
+		 }
+		 
+		 return null;
+		
+	}
 	
-	public int approveProspects(List<String> uuids){
+	public int approveProspects(String idString){
 		
 		int finalCode = 1;
+		String[] ids = idString.split(",");
 
 		try{
 		
@@ -243,7 +275,7 @@ public class ProspectServiceImpl implements ProspectService {
 			ResourceResolver resourceResolver = resolverFactory.getAdministrativeResourceResolver(null);
 		    session = resourceResolver.adaptTo(Session.class);
 		
-			for (String uuid : uuids){
+			for (String id : ids){
 				
 				    //Create a node that represents the root node
 				    Node root = session.getRootNode();
@@ -254,18 +286,20 @@ public class ProspectServiceImpl implements ProspectService {
 					//Find target node
 					Node targetNode = null;
 					if (prospectsNode != null){
-						targetNode = nodeSearch(prospectsNode, "uuid", uuid);
+						//targetNode = nodeSearch(prospectsNode, "jcr:path", id);
+						targetNode = nodePathSearch(prospectsNode, id);
 					}
 					
 					//Return in case target not found
 					if (targetNode == null){
-						log.info("No nodes found with UUID  '" + uuid + "'");
+						log.info("No nodes found with ID  '" + id + "'");
 						//int failtest = 2 / 0;
 						finalCode=-1;
+					} else {
+						//Store content from the client JSP in the JCR
+						targetNode.setProperty("isApproved", "1");
 					}
-			                      
-					//Store content from the client JSP in the JCR
-					targetNode.setProperty("isApproved", "1");
+
 			}
 		
 			// Save the session changes and log out
@@ -285,5 +319,60 @@ public class ProspectServiceImpl implements ProspectService {
 		
 		return finalCode;
 	}
+	
+	
+//	public int approveProspects(List<String> ids){
+//		
+//		int finalCode = 1;
+//
+//		try{
+//		
+//			//Invoke the adaptTo method to create a Session used to create a QueryManager
+//			ResourceResolver resourceResolver = resolverFactory.getAdministrativeResourceResolver(null);
+//		    session = resourceResolver.adaptTo(Session.class);
+//		
+//			for (String id : ids){
+//				
+//				    //Create a node that represents the root node
+//				    Node root = session.getRootNode();
+//					                     
+//					//Get the prospects node in the JCR
+//					Node prospectsNode = root.getNode("var").getNode("prospects");
+//					
+//					//Find target node
+//					Node targetNode = null;
+//					if (prospectsNode != null){
+//						//targetNode = nodeSearch(prospectsNode, "jcr:path", id);
+//						targetNode = nodePathSearch(prospectsNode, id);
+//					}
+//					
+//					//Return in case target not found
+//					if (targetNode == null){
+//						log.info("No nodes found with ID  '" + id + "'");
+//						//int failtest = 2 / 0;
+//						finalCode=-1;
+//					}
+//			                      
+//					//Store content from the client JSP in the JCR
+//					targetNode.setProperty("isApproved", "1");
+//			}
+//		
+//			// Save the session changes and log out
+//			session.save();
+//	  		session.logout();
+//	  		
+//		}
+//		
+//		catch(RepositoryException  e){
+//			log.error("RepositoryException: " + e);
+//			finalCode = -2;
+//		} catch (LoginException e) {
+//			// TODO Auto-generated catch block
+//			log.error("LoginException: " + e);
+//			finalCode = -3;
+//		}
+//		
+//		return finalCode;
+//	}
  
  }
