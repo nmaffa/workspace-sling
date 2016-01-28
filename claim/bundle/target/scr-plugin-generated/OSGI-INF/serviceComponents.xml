@@ -7,41 +7,4 @@
         <property name="service.pid" value="com.adobe.cq.service.ProspectServiceImpl"/>
         <reference name="resolverFactory" interface="org.apache.sling.api.resource.ResourceResolverFactory" cardinality="1..1" policy="static" bind="bindResolverFactory" unbind="unbindResolverFactory"/>
     </scr:component>
-    <scr:component enabled="true" name="com.adobe.cq.sling.impl.HelloServiceImpl">
-        <implementation class="com.adobe.cq.sling.impl.HelloServiceImpl"/>
-        <service servicefactory="false">
-            <provide interface="com.adobe.cq.sling.HelloService"/>
-        </service>
-        <property name="service.pid" value="com.adobe.cq.sling.impl.HelloServiceImpl"/>
-        <reference name="repository" interface="org.apache.sling.jcr.api.SlingRepository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
-    </scr:component>
-    <scr:component enabled="true" immediate="true" name="com.adobe.cq.sling.impl.filters.LoggingFilter">
-        <implementation class="com.adobe.cq.sling.impl.filters.LoggingFilter"/>
-        <service servicefactory="false">
-            <provide interface="javax.servlet.Filter"/>
-        </service>
-        <property name="service.ranking" type="Integer" value="-700"/>
-        <property name="sling.filter.scope" value="REQUEST"/>
-        <property name="service.pid" value="com.adobe.cq.sling.impl.filters.LoggingFilter"/>
-    </scr:component>
-    <scr:component enabled="true" name="com.adobe.cq.sling.HandleApproval">
-        <implementation class="com.adobe.cq.sling.HandleApproval"/>
-        <service servicefactory="false">
-            <provide interface="javax.servlet.Servlet"/>
-        </service>
-        <property name="sling.servlet.paths" value="/bin/handleApprovalServlet"/>
-        <property name="sling.servlet.methods" value="POST"/>
-        <property name="service.pid" value="com.adobe.cq.sling.HandleApproval"/>
-        <reference name="repository" interface="org.apache.sling.jcr.api.SlingRepository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
-    </scr:component>
-    <scr:component enabled="true" name="com.adobe.cq.sling.HandleClaim">
-        <implementation class="com.adobe.cq.sling.HandleClaim"/>
-        <service servicefactory="false">
-            <provide interface="javax.servlet.Servlet"/>
-        </service>
-        <property name="sling.servlet.paths" value="/bin/mySearchServlet"/>
-        <property name="sling.servlet.methods" value="POST"/>
-        <property name="service.pid" value="com.adobe.cq.sling.HandleClaim"/>
-        <reference name="repository" interface="org.apache.sling.jcr.api.SlingRepository" cardinality="1..1" policy="static" bind="bindRepository" unbind="unbindRepository"/>
-    </scr:component>
 </components>

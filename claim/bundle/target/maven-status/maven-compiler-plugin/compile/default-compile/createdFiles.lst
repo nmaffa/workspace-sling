@@ -1,9 +1,3 @@
-com\adobe\cq\sling\impl\HelloServiceImpl.class
-com\adobe\cq\sling\impl\filters\LoggingFilter.class
-com\adobe\cq\sling\HandleApproval.class
 com\adobe\cq\model\Prospect.class
 com\adobe\cq\service\ProspectService.class
 com\adobe\cq\service\ProspectServiceImpl.class
-com\adobe\cq\sling\HandleClaim.class
-com\adobe\cq\sling\package-info.class
-com\adobe\cq\sling\HelloService.class
