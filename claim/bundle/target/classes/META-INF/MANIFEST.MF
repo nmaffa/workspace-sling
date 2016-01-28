@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bnd-LastModified: 1453926550933
+Bnd-LastModified: 1454014478116
 Build-Jdk: 1.8.0_66
 Built-By: nmaffa
 Bundle-Description: Maven Multimodule project for My Project.

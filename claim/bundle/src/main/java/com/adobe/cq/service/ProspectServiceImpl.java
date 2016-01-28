@@ -146,35 +146,31 @@ public class ProspectServiceImpl implements ProspectService {
 		                        
 		         //Add rest of data as child elements to customer
 		         
-		         //Set UUID
+		         //Set UUID element
 	//	         Element uuidElement = doc.createElement( "uuid" );
 	//	         uuidElement.appendChild( doc.createTextNode( prospect.getUuid() ) );
 	//	         prospectElement.appendChild( uuidElement );
 		        
-		         //Set JCR Path
+		         //Set JCR Path element
 		         Element jcrPathElement = doc.createElement("jcrpath");
 		         jcrPathElement.appendChild( doc.createTextNode( prospect.getJcrPath() ) );
 		         prospectElement.appendChild( jcrPathElement );
 		         
-		         //Set Email
+		         //Set Email element
 		         Element emailElement = doc.createElement( "email" );
 		         emailElement.appendChild( doc.createTextNode( prospect.getEmail() ) );
 		         prospectElement.appendChild( emailElement );
 		                                                           
-		         //Set First Name
+		         //Set First Name element
 		         Element fNameElement = doc.createElement( "fname" );
 		         fNameElement.appendChild( doc.createTextNode( prospect.getFname() ) );
 		         prospectElement.appendChild( fNameElement );
 		                     
-		         //Set Last name
+		         //Set Last name element
 		         Element lNameElement = doc.createElement( "lname" );
 		         lNameElement.appendChild( doc.createTextNode( prospect.getLname() ) );
 		         prospectElement.appendChild( lNameElement );
 		                    
-		         //Set is Approved
-		         Element isApprovedElement = doc.createElement( "isApproved" );
-		         isApprovedElement.appendChild( doc.createTextNode( prospect.getIsApproved() ) );
-		         prospectElement.appendChild( isApprovedElement );
 		      }
 		             
 		return doc;
@@ -240,7 +236,6 @@ public class ProspectServiceImpl implements ProspectService {
 					//If target node is not found,
 					if (targetNode == null){
 						log.info("No nodes found with ID  '" + id + "'");
-						//int failtest = 2 / 0;
 						finalCode=-1;
 					} else {
 						//Store content from the client JSP in the JCR
@@ -258,7 +253,6 @@ public class ProspectServiceImpl implements ProspectService {
 			log.error("RepositoryException: ", e);
 			finalCode = -1;
 		} catch (LoginException e) {
-			// TODO Auto-generated catch block
 			log.error("LoginException: ", e);
 			finalCode = -1;
 		} catch (Exception e) {
@@ -272,34 +266,6 @@ public class ProspectServiceImpl implements ProspectService {
 		
 		return finalCode;
 	}
-	
-	 //Does a Depth First Search on a given root node for a node with provided property/value pair
-	 private Node nodeSearch(Node node, String property, String value){
-		 
-		 try{
-			 
-			 if (node.hasProperty(property) && node.getProperty(property).getString().equals(value)){
-				 
-				 return node;
-			 }
-		 
-			 NodeIterator nodeIterator = node.getNodes();
-			 
-			 while (nodeIterator.hasNext()){
-				 Node n = nodeSearch(nodeIterator.nextNode(), property, value);
-				 if (n != null){
-					 return n;
-				 }
-			 }
-			 
-		 } catch (RepositoryException re) {
-			 log.error("Repository Exception occured while searching for nodes", re);
-		 } catch (Exception e){
-			 log.error("Exception occured while searching for nodes", e);
-		 }
-		 
-		 return null;
-	 }
 	 
 	//Does a Depth First Search on a given root node for a node with provided path value
 	private Node nodePathSearch(Node node, String pathValue){
@@ -328,5 +294,35 @@ public class ProspectServiceImpl implements ProspectService {
 		 return null;
 		
 	}
+	
+	//Does a Depth First Search on a given root node for a node with provided property/value pair.
+	//Method is unused for now as we are doing a path based search for nodes rather than a property
+	//based search.
+	 private Node nodeSearch(Node node, String property, String value){
+		 
+		 try{
+			 
+			 if (node.hasProperty(property) && node.getProperty(property).getString().equals(value)){
+				 
+				 return node;
+			 }
+		 
+			 NodeIterator nodeIterator = node.getNodes();
+			 
+			 while (nodeIterator.hasNext()){
+				 Node n = nodeSearch(nodeIterator.nextNode(), property, value);
+				 if (n != null){
+					 return n;
+				 }
+			 }
+			 
+		 } catch (RepositoryException re) {
+			 log.error("Repository Exception occured while searching for nodes", re);
+		 } catch (Exception e){
+			 log.error("Exception occured while searching for nodes", e);
+		 }
+		 
+		 return null;
+	 }
  
  }

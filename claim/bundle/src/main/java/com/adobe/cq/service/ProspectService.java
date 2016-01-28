@@ -1,9 +1,10 @@
 package com.adobe.cq.service;
 
-import java.util.List;
+/**
+ * @author nmaffa
+ */
 
-import org.w3c.dom.Document;
-
+//Service responsible for getting prospect data and approving prospects
 public interface ProspectService {
 	
 	//Mark multiple prospects as approved

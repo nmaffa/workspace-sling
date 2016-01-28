@@ -4,6 +4,12 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+/**
+ * @author nmaffa
+ */
+
+//Class should be responsible for testing ProspectService methods. Issue of injecting
+//mock repository into service is still unresolved. As such, only one test has been implemented
 public class ProspectServiceTests {
 	
 	ProspectService prospectService = new ProspectServiceImpl();
