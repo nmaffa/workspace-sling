@@ -69,13 +69,10 @@ public class ProspectServiceImpl implements ProspectService {
 		 
 		    //Obtain the query manager for the session ...
 		    QueryManager queryManager = session.getWorkspace().getQueryManager();
-		      
-			//Setup the query based on user input     
-			String sqlStatement="";
 		     
 			//Setup the query to get all prospect records where isBlacklist='true',
 			//regStatusEmailType='EXPIRED', and isApproved='-1'
-			sqlStatement = "SELECT * FROM [nt:unstructured] WHERE ISDESCENDANTNODE([/var/prospects])";
+			String sqlStatement = "SELECT * FROM [nt:unstructured] WHERE ISDESCENDANTNODE([/var/prospects])";
 			sqlStatement += " AND [nt:unstructured].isBlacklist IS NOT NULL AND [nt:unstructured].isBlacklist='true' ";
 			sqlStatement += " AND [nt:unstructured].regStatusEmailType IS NOT NULL AND [nt:unstructured].regStatusEmailType='EXPIRED' ";
 			sqlStatement += " AND [nt:unstructured].isApproved IS NOT NULL AND [nt:unstructured].isApproved='-1'";
