@@ -6,16 +6,6 @@
 
 	com.adobe.cq.service.ProspectService prospectService = sling.getService(com.adobe.cq.service.ProspectService.class);
 
-/*BufferedReader reader = request.getReader();
- 	String linedata = reader.readLine();
-	String textdata = "";
-
-	while (linedata != null){
-            textdata += linedata;
-            linedata = reader.readLine();
-
-    }*/
-
     prospectService.approveProspects(paths);
 
 

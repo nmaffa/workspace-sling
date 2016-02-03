@@ -4,7 +4,7 @@
 <comment>User Approval Package</comment>
 <entry key="createdBy">nmaffa</entry>
 <entry key="name">claim-content</entry>
-<entry key="created">2016-01-29T10:40:05.334-0500</entry>
+<entry key="created">2016-02-03T12:21:57.881-0500</entry>
 <entry key="groupId">com.adobe.cq.sling</entry>
 <entry key="version">1.0-SNAPSHOT</entry>
 <entry key="requiresRoot">false</entry>

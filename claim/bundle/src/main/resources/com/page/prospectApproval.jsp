@@ -1,52 +1,35 @@
 <%--
 
-  userApproval component.
+  prospectApproval component.
 
-  Page component used for approving new users.
+  Page component used for approving prospects.
 
 --%>
 <%@include file="/libs/foundation/global.jsp"%>
-<cq:includeClientLib categories="jquerysamples" />
+<cq:includeClientLib categories="datatables_samples" />
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Approve Users for GSAM Funds</title>
-<style>
-#signup .indent label.error {
-  margin-left: 0;
-}
-#signup label.error {
-  font-size: 0.8em;
-  color: #F00;
-  font-weight: bold;
-  display: block;
-  margin-left: 215px;
-}
-#signup  input.error, #signup select.error  {
-  background: #FFA9B8;
-  border: 1px solid red;
-}
-</style>
+<title>Approve Prospects for GSAM Funds</title>
 <script>
 $(document).ready(function() {
 
+    var aDataSet = [];
 
-       var aDataSet = [];
-
+    //Div used to store data table
     $('#dynamic').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="resultTable"></table>' );
 
+    //Table of Prospect data
     $('#resultTable').dataTable( {
           "aaData": aDataSet,
           "aoColumns": [
-              { "sTitle": "Email" },
+              { "sTitle": "Email"},
               { "sTitle": "First Name" },
               { "sTitle": "Last Name", "sClass": "center" },
-              { "sTitle": "Approve?", "sClass": "dt-center", "sType": "html" },
-              { "sTitle": "UUID"/*, "bVisible": false*/ }
+              { "sTitle": "Approve?", "sClass": "dt-center", "sType": "html" }
           ]
     } );
 
-    $('body').hide().fadeIn(500);
 
     //Get Prospect data
     //This method populates the data grid with data retrieved from the Adobe CQ JCR
@@ -70,37 +53,36 @@ $(document).ready(function() {
 
 
                     //Set the fields in the forum
-                    var myXML = data.xml;
+                    var resultXml = data.xml;
 
                     var loopIndex = 0; 
 
                     //Reference the data grid, clear it, and add new records
                     //queried from the Adobe CQ JCR
                     var oTable = $('#resultTable').dataTable();
-                     oTable.fnClearTable(true);
+                    oTable.fnClearTable(true);
 
 
                      //Loop through this function for each Prospect element
                      //in the returned XML
-                     $(myXML).find('prospect').each(function(){
+                     $(resultXml).find('prospect').each(function(){
 
                         var $field = $(this);
                         var email = $field.find('email').text();
                         var fName = $field.find('fname').text();
                         var lName = $field.find('lname').text();
-                         //var isApproved = $field.find('isApproved').text();
-                         //var uuid = $field.find('uuid').text();
-                         var jcrPath = $field.find('jcrpath').text();
+                        var jcrPath = $field.find('jcrpath').text();
 
-                        var isApproved = "<input id=chk-" + jcrPath + " type=checkbox>";
+                        //JCR Path of prospect is saved as part of the ID for each checkbox, to make iterating through
+                        //IDs of approved prospects easier for persisting later
+                        var approveCheckbox = "<input id=chk-" + jcrPath + " type=checkbox>";
 
                         //Set the new data 
                         oTable.fnAddData( [
                             email,
                             fName,
                             lName,
-                            isApproved,
-                        	jcrPath,]
+                            approveCheckbox,]
                         );
 
 						loopIndex++;
@@ -118,53 +100,57 @@ $(document).ready(function() {
 
 	}
 
-	getProspectData();
-
 	function approveProspects() {
 
 		var failure = function(err) {
               alert("Unable to persist data " + err);
           };
 
-        //Get the query filter value from drop down control
-        //var filter=   $('#prospectQuery').val() ; 
+		var prospectsApproved = [];
 
-		var usersApproved = [];
-
+        //For each checked box, add the ID (JCR Path) of the prospect to prospectsApproved array
 		$('input[type=checkbox]').each(function() {
 			if (this.checked){
                 var checkboxIdSplit = $(this).attr('id').split("chk-");
                 if (checkboxIdSplit.length > 1){
-					usersApproved.push(checkboxIdSplit[1]);
+					prospectsApproved.push(checkboxIdSplit[1]);
                 }
 			}
 		});
 
-        //Apply persistence
-        var url = location.pathname.replace(".html", "/_jcr_content.persist.json") + "?paths=" + usersApproved.toString();
+        //If there are checked prospects, apply persistence
+        if (prospectsApproved.length > 0){   
 
-        $.ajax({
-            url : url,
-            //type: "POST",
-            //dataType: "text",
-            //data: usersApproved.toString(),
-            success: function(data, textStatus, xhr)
-    		{
+            //Query parameter 'paths' holds a string of all the JCR Paths of approved prospects delimited with a comma ','
+            var url = location.pathname.replace(".html", "/_jcr_content.persist.json") + "?paths=" + prospectsApproved.toString();
 
-    		},
-    		error: function (xhr, textStatus, errorThrown)
-    		{
-                failure(errorThrown);
-    		}
+            $.ajax(url, {
+                dataType: "text",
+                //data: prospectsApproved.toString(),
+                success: function(data, textStatus, xhr)
+                {
+                    //If request successful, reload the page
+					window.location.reload(true);
+                },
+                error: function (xhr, textStatus, errorThrown)
+                {
+                    console.log(xhr);
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                    failure(errorThrown);
+                }
 
-        });
+            });
+        }
 
-    }
+    } //End method declarations
+
+  	//Load page with prospect data                                                    
+    getProspectData();
 
     //When Approve Prospects button clicked, approve all checked prospects and reload page                                                
     $('#approveButton').click(function() {
         approveProspects();
-    	location.reload();
     });
 
 }); // end ready
@@ -173,7 +159,7 @@ $(document).ready(function() {
 <body>
     <div class="wrapper">
         <div class="header">
-            <p class="logo">New User Approval Page</p>
+            <p class="logo">Prospect Approval Page</p>
         </div>
         <div id="container">
             <form name="prospectdata" id="prospectdata">
